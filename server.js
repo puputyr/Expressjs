@@ -2,8 +2,11 @@ const express = require('express');
 const app = express();
 const db = require('./db');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs'); // Untuk hashing password
+require('dotenv').config();
+
 
 // Middleware
 app.use(cors());
@@ -28,6 +31,7 @@ app.post('/register', (req, res) => {
                 return res.status(500).send('Error creating user');
             }
             res.status(201).send('User registered successfully');
+            
         });
     });
 });
@@ -57,7 +61,8 @@ app.post('/login', (req, res) => {
             }
 
             if (isMatch) {
-                res.status(200).send('Login successful');
+                const accessToken = jwt.sign({name}, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
+                res.status(200).json({token:accessToken});
             } else {
                 res.status(401).send('Incorrect password');
             }
@@ -335,6 +340,6 @@ app.delete('/history/:id', (req, res) => {
 });
 
 // Menjalankan server pada port 3000
-app.listen(3000, () => {
-    console.log('Server is running on port 3000');
+app.listen(5000, () => {
+    console.log('Server is running on port 5000');
 });

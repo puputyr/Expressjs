@@ -5,17 +5,19 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcryptjs'); // Untuk hashing password
+const multer = require("multer");
+const path = require("path");
 require('dotenv').config();
-
+const {diskStorage} =require("./multer");
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());  // Untuk parsing request body ke JSON
 
 // Register Route
-app.post('/register', (req, res) => {
-    const { name, password, role } = req.body;
-
+app.post('/register',  multer({ storage: diskStorage }).single("img"), (req, res) => {
+    const { name, password, role, no_whatsapp, foto_profile } = req.body;
+    const fileName = path.basename(req.file.path);
     // Hash password menggunakan bcrypt
     bcrypt.hash(password, 10, (err, hashedPassword) => {
         if (err) {
@@ -24,8 +26,8 @@ app.post('/register', (req, res) => {
         }
 
         // Query untuk memasukkan user ke database dengan password yang sudah di-hash
-        const query = 'INSERT INTO user (name, password, role) VALUES (?, ?, ?)';
-        db.query(query, [name, hashedPassword, role], (err, result) => {
+        const query = 'INSERT INTO user (name, password, role, no_whatsapp, foto_profile) VALUES (?, ?, ?, ?, ?)';
+        db.query(query, [name, hashedPassword, role, no_whatsapp, fileName], (err, result) => {
             if (err) {
                 console.log(err);
                 return res.status(500).send('Error creating user');
@@ -35,6 +37,7 @@ app.post('/register', (req, res) => {
         });
     });
 });
+    
 
 // Login Route
 app.post('/login', (req, res) => {
